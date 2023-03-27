@@ -1,5 +1,8 @@
 ﻿using LoginRegisterJwt.DTO;
 using LoginRegisterJwt.Models;
+using LoginRegisterJwt.Services.IUserService;
+using LoginRegisterJwt.Services.UserService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -17,13 +20,22 @@ public class AuthController : ControllerBase
 {
     public static User user = new User();
     private readonly IConfiguration _configuration;
-    //private readonly IUserService _userService;
+    public readonly IUserService _userService;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(IConfiguration configuration, IUserService userService)
     {
         _configuration = configuration;
-        //_userService = userService;
+        _userService = userService;
     }
+
+    [HttpGet, Authorize]
+    public ActionResult<string> getUserName()
+    {
+        var userName = _userService.GetMyName();
+        return Ok(userName);
+    }
+
+
 
     [HttpPost("register")]
     public async Task<ActionResult<User>> Register(UserDto request)
@@ -94,6 +106,7 @@ public class AuthController : ControllerBase
         }
     }
 
+    
    
    
 }
