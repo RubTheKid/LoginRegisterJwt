@@ -1,7 +1,6 @@
 ﻿namespace LoginRegisterJwt.Services.UserService;
 
-public class IUserService
+public interface IUserService
 {
-    ///aaaaaaaaaaaaaaaaaaaapq
     string GetMyName();
 }

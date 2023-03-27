@@ -4,8 +4,6 @@ using System.Security.Claims;
 
 namespace LoginRegisterJwt.Services.UserService;
 
-[Route("api/[controller]")]
-[ApiController]
 public class UserService : IUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

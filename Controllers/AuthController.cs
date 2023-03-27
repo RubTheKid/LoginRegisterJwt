@@ -1,6 +1,5 @@
 ﻿using LoginRegisterJwt.DTO;
 using LoginRegisterJwt.Models;
-using LoginRegisterJwt.Services.IUserService;
 using LoginRegisterJwt.Services.UserService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
