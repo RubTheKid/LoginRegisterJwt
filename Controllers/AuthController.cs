@@ -19,7 +19,7 @@ public class AuthController : ControllerBase
 {
     public static User user = new User();
     private readonly IConfiguration _configuration;
-    public readonly IUserService _userService;
+    private readonly IUserService _userService;
 
     public AuthController(IConfiguration configuration, IUserService userService)
     {
@@ -28,10 +28,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet, Authorize]
-    public ActionResult<string> getUserName()
+    public ActionResult<string> GetUserName()
     {
         var userName = _userService.GetMyName();
-        return Ok(userName);
+
+        return Ok("user:" + userName);
     }
 
 
@@ -57,14 +58,78 @@ public class AuthController : ControllerBase
         }
         if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
         {
-            return BadRequest("Wrong password");
+            return BadRequest("Wrong user or password");
         }
 
         string token = CreateToken(user);
 
+        var refreshToken = GenerateRefreshToken();
+        SetRefreshToken(refreshToken);
+
         return Ok(token);
     }
 
+    /*--------------------------------------------------*/
+    [HttpPost("refresh-token")]
+
+    public async Task<ActionResult<string>> RefreshToken()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+
+        if (!user.RefreshToken.Equals(refreshToken))
+        {
+            return Unauthorized("invalid refresh token");
+        }
+        else if (user.TokenExpires < DateTime.Now)
+        {
+            return Unauthorized("token expired");
+        }
+
+        string token = CreateToken(user);
+        var newRefreshToken = GenerateRefreshToken();
+        SetRefreshToken(newRefreshToken);
+
+        return Ok(token);
+    }
+
+
+
+
+
+
+
+    /*--------------------------------------------------*/
+    //refresh tokens oauth 2.0
+    private RefreshToken GenerateRefreshToken()
+    {
+        var refreshToken = new RefreshToken
+        {
+            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+            Expires = DateTime.Now.AddDays(1),
+            Created = DateTime.Now
+        };
+
+        return refreshToken;
+    }
+
+    private void SetRefreshToken(RefreshToken newRefreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = newRefreshToken.Expires
+        };
+        
+        Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
+
+        user.RefreshToken = newRefreshToken.Token;
+        user.TokenCreated = newRefreshToken.Created;
+        user.TokenExpires = newRefreshToken.Expires;
+    }
+
+
+    /*--------------------------------------------------*/
+    //create bearer jwt
     private string CreateToken(User user)
     {
         List<Claim> claims = new List<Claim>
@@ -86,8 +151,9 @@ public class AuthController : ControllerBase
         return jwt;
     }
 
+    /*--------------------------------------------------*/
     //creating pwd hash
-    private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+    private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
         using (var hmac = new HMACSHA512())
         {
@@ -96,7 +162,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+    private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
     {
         using(var hmac = new HMACSHA512(passwordSalt))
         {
@@ -105,7 +171,5 @@ public class AuthController : ControllerBase
         }
     }
 
-    
-   
-   
+ /*--------------------------------------------------*/
 }
