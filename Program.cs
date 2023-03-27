@@ -9,10 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-/*--------------------------------------------------*/
-
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpContextAccessor();
 
@@ -49,30 +45,23 @@ builder.Services.AddCors(options => options.AddPolicy(name: "NgOrigins",
     }
 ));
 
-
-/*--------------------------------------------------*/
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 };
-/*--------------------------------------------------*/
+
 
 app.UseCors("NgOrigins");
 
-/*--------------------------------------------------*/
 
 app.UseHttpsRedirection();
 
-/*--------------------------------------------------*/
 
 app.UseAuthentication();
 
-/*--------------------------------------------------*/
 app.UseAuthorization();
 
 app.MapControllers();

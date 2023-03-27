@@ -36,7 +36,6 @@ public class AuthController : ControllerBase
     }
 
 
-
     [HttpPost("register")]
     public async Task<ActionResult<User>> Register(UserDto request)
     {
@@ -91,11 +90,6 @@ public class AuthController : ControllerBase
 
         return Ok(token);
     }
-
-
-
-
-
 
 
     /*--------------------------------------------------*/
